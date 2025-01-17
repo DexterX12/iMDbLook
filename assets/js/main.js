@@ -6,7 +6,7 @@ const movieCarouselLeft = document.querySelector("#movie-carousel-left");
 const movieCarousel = document.querySelector("#movie-carousel");
 let movieElement = document.querySelector(".movie-element");
 
-const bigScreenVideo = document.querySelector("#background-video");
+let bigScreenVideo = document.querySelector("#background-video");
 const bigScreenTitle = document.querySelector(".movie-big-title");
 const bigScreenDescription = document.querySelector(".movie-big-description");
 
@@ -37,13 +37,20 @@ function setMainMedia(mediaObj) {
     bigScreenTitle.textContent = mediaObj["short"].name;
     bigScreenDescription.textContent = mediaObj["short"].description;
 
-    if (hasMediaTrailer(mediaObj["imdbId"])) {
-        videoSource.src = `${imdbAPIbaseURL}media/${mediaObj["imdbId"]}`;
-        bigScreenVideo.load();
-    }
-    else {
-        bigScreenVideo.backgroundImage = `url(${mediaObj["short"].image})`;
-    }
+    hasMediaTrailer(mediaObj["imdbId"])
+    .then(hasTrailer => {
+        if (hasTrailer) {
+            videoSource.src = `${imdbAPIbaseURL}media/${mediaObj["imdbId"]}`;
+            bigScreenVideo.load();
+        }
+        else {
+            bigScreenVideo.pause();
+            videoSource.removeAttribute('src'); // empty source
+            bigScreenVideo.load();
+            bigScreenVideo.style.backgroundImage = `url(${mediaObj["short"].image})`;
+        }
+    })
+
 }
 
 function populateMedia(movieList) {
@@ -157,6 +164,8 @@ movieCarouselLeft.addEventListener('click', function () {
 
 
 window.onload = function() {
+
+    bigScreenVideo.volume = 0.05
 
     getMedia("a")
     .then(async data => {
